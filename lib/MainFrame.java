@@ -18,8 +18,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 
-
-public class WochenkalenderGUI extends JFrame implements ActionListener {
+public class MainFrame extends JFrame implements ActionListener {
 
     private LocalDate aktuellesDatum;
     private JPanel pnlNavigation;
@@ -34,8 +33,10 @@ public class WochenkalenderGUI extends JFrame implements ActionListener {
     private JButton btnLoeschen;
     private JButton btnLaden;
     private String dateiname;
+    private DefaultTableModel tblModel2;
+    private JTable tblSchicht;
 
-    public WochenkalenderGUI() {
+    public MainFrame() {
         // Fenster-Einstellungen
         setTitle("Wochenkalender");
         setSize(1000, 1000);
@@ -104,30 +105,52 @@ public class WochenkalenderGUI extends JFrame implements ActionListener {
         tblKalender.setTransferHandler(new CellTransferHandler());
         tblKalender.setRowHeight(30);
 
-
-
-    
-
         // JScrollPane mit JTable erstellen und Eigenschaften setzen
         JScrollPane scrollPane = new JScrollPane(tblKalender);
         scrollPane.setBorder(new EmptyBorder(20, 20, 20, 20));
+        scrollPane.setPreferredSize(new Dimension(1000, 5000));
         pnlKalender.add(scrollPane, BorderLayout.CENTER);
 
-        // JFrame mit BorderLayout erstellen und GUI-Komponenten hinzufügen
-        getContentPane().setLayout(new BorderLayout());
-        getContentPane().add(pnlNavigation, BorderLayout.NORTH);
-        getContentPane().add(pnlKalender, BorderLayout.CENTER);
-        getContentPane().add(btnSchichteintrag, BorderLayout.SOUTH);
+        // Zweite Tabelle für die Schichten erstellen
+        // Zwei Zeilen und gleiche Spalten wie die erste Tabelle
+        tblModel2 = new DefaultTableModel(new Object[] { "", "", "", "", "", "", "", "", "" }, 2);
+
+        tblSchicht = new JTable(tblModel2);
+        tblSchicht.setDragEnabled(true);
+        tblSchicht.setDropMode(DropMode.USE_SELECTION);
+        tblSchicht.setTransferHandler(new CellTransferHandler());
+        tblSchicht.setRowHeight(30);
+        tblSchicht.setShowGrid(true); 
+        
+
+        JScrollPane scrollPane2 = new JScrollPane(tblSchicht);
+        scrollPane2.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
+        scrollPane2.setBorder(new EmptyBorder(20, 20, 20, 20));
+        
+
+        // JPanel für die Schichten erstellen und das Label hinzufügen
+        JPanel pnlSchicht = new JPanel(new BorderLayout());
+        pnlSchicht.add(scrollPane2, BorderLayout.CENTER);
+        tblSchicht.setBackground(Color.LIGHT_GRAY);
+
+        // Layout Manager zum Platzieren mehrerer Komponenten
+        getContentPane().setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
+
+        getContentPane().add(pnlNavigation);
+        getContentPane().add(pnlKalender);
+        getContentPane().add(pnlSchicht); 
+        getContentPane().add(btnSchichteintrag);
 
         // Kalender aktualisieren
         aktualisiereKalender();
         ladeWocheAusDatei();
+
     }
 
     // Main-Methode, die eine neue WochenkalenderGUI-Instanz erstellt und sichtbar
     // macht
     public static void main(String[] args) {
-        WochenkalenderGUI gui = new WochenkalenderGUI();
+        MainFrame gui = new MainFrame();
         gui.setVisible(true);
     }
 
@@ -249,7 +272,7 @@ public class WochenkalenderGUI extends JFrame implements ActionListener {
     }
 
     private void speichern() {
-    
+
         // Hole den Dateinamen aus dem aktuellen Wochen-Key
         LocalDate montag = aktuellesDatum.with(DayOfWeek.MONDAY);
         String wocheKey = montag.format(DateTimeFormatter.ISO_LOCAL_DATE);
@@ -304,19 +327,18 @@ public class WochenkalenderGUI extends JFrame implements ActionListener {
         int result = JOptionPane.showConfirmDialog(this, panel, "Neuer Schichteintrag", JOptionPane.OK_CANCEL_OPTION);
         if (result == JOptionPane.OK_OPTION) {
             // Neue Zeile hinzufügen, wenn keine freie Zeile mehr vorhanden ist
-            if (tblModel.getRowCount() == 0 || tblModel.getValueAt(tblModel.getRowCount() -1, 2) != null) {
-                tblModel.addRow(new Object[] { "", "", "", "", "", "", "", "", "" });
+            if (tblModel2.getRowCount() == 0 || tblModel2.getValueAt(0, 2) != null) {
+                tblModel2.addRow(new Object[] { "", "", "", "", "", "", "", "", "" });
             }
-            int row = tblModel.getRowCount() - 1;
+            int row = 0;
             // Nächste freie Spalte finden
             int column = 0;
-            while (column < 8 && tblModel.getValueAt(row, column) != null) {
+            while (column < 8 && tblModel2.getValueAt(row, column) != null) {
                 column++;
             }
             // Schichtinformationen in die Tabelle einfügen
             String schichtInfo = nameField.getText() + "\n" + zeitField.getText();
-            tblModel.setValueAt(schichtInfo, row, column);
-
+            tblModel2.setValueAt(schichtInfo, row, column);
         }
     }
 
