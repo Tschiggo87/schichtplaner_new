@@ -2,6 +2,7 @@ package lib;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.print.PrinterException;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileWriter;
@@ -17,6 +18,11 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import javax.swing.JOptionPane;
 
 public class MainFrame extends JFrame implements ActionListener {
 
@@ -35,6 +41,7 @@ public class MainFrame extends JFrame implements ActionListener {
     private String dateiname;
     private DefaultTableModel tblModel2;
     private JTable tblSchicht;
+    private JButton btnDrucken;
 
     public MainFrame() {
         // Fenster-Einstellungen
@@ -73,6 +80,9 @@ public class MainFrame extends JFrame implements ActionListener {
         btnLaden = new JButton("Laden");
         btnLaden.addActionListener(this);
 
+        btnDrucken = new JButton("Drucken");
+        btnDrucken.addActionListener(this);
+
         // Buttons zum Panel hinzufügen
         pnlNavigation.add(btnSchichteintrag);
         pnlNavigation.add(btnNeuerEintrag);
@@ -81,6 +91,7 @@ public class MainFrame extends JFrame implements ActionListener {
         pnlNavigation.add(btnSpeichern);
         pnlNavigation.add(btnLoeschen);
         pnlNavigation.add(btnLaden);
+        pnlNavigation.add(btnDrucken);
 
         // JPanel mit BorderLayout erstellen
         pnlKalender = new JPanel(new BorderLayout());
@@ -120,13 +131,11 @@ public class MainFrame extends JFrame implements ActionListener {
         tblSchicht.setDropMode(DropMode.USE_SELECTION);
         tblSchicht.setTransferHandler(new CellTransferHandler());
         tblSchicht.setRowHeight(30);
-        tblSchicht.setShowGrid(true); 
-        
+        tblSchicht.setShowGrid(true);
 
         JScrollPane scrollPane2 = new JScrollPane(tblSchicht);
         scrollPane2.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
         scrollPane2.setBorder(new EmptyBorder(20, 20, 20, 20));
-        
 
         // JPanel für die Schichten erstellen und das Label hinzufügen
         JPanel pnlSchicht = new JPanel(new BorderLayout());
@@ -138,7 +147,7 @@ public class MainFrame extends JFrame implements ActionListener {
 
         getContentPane().add(pnlNavigation);
         getContentPane().add(pnlKalender);
-        getContentPane().add(pnlSchicht); 
+        getContentPane().add(pnlSchicht);
         getContentPane().add(btnSchichteintrag);
 
         // Kalender aktualisieren
@@ -179,13 +188,13 @@ public class MainFrame extends JFrame implements ActionListener {
         } else if (event.getSource() == btnSpeichern) {
             // Wenn der Speichern-Button geklickt wurde
             speichern();
-
         } else if (event.getSource() == btnLoeschen) {
             // Wenn der Löschen-Button geklickt wurde
             loeschen();
         } else if (event.getSource() == btnLaden) {
             ladeWocheAusDatei();
-            ;
+        } else if (event.getSource() == btnDrucken) {
+            drucken();
         }
     }
 
@@ -313,7 +322,7 @@ public class MainFrame extends JFrame implements ActionListener {
         Color[] color = { Color.WHITE };
 
         JPanel panel = new JPanel(new GridLayout(0, 1));
-        panel.add(new JLabel("Name des Mitarbeiters:"));
+        panel.add(new JLabel("Name der Schicht:"));
         panel.add(nameField);
         panel.add(new JLabel("Arbeitszeit:"));
         panel.add(zeitField);
@@ -351,4 +360,11 @@ public class MainFrame extends JFrame implements ActionListener {
         }
     }
 
+    private void drucken() {
+        try {
+            tblKalender.print();
+        } catch (PrinterException e) {
+            e.printStackTrace();
+        }
+    }
 }
